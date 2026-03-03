@@ -64,7 +64,7 @@ def load_data_optimized():
         rates_df = rates_df[rates_df['Zone'].isin(['A','B','C','D','E','F'])]
         rate_dict = rates_df.set_index('Zone').to_dict('index')
 
-        remote_zips = set(df_remote.iloc[:, 0].astype(str).str.replace('.0', '', regex=False).str.strip().tolist())
+        remote_zips = set(df_remote.iloc[:, 0].astype(str).str.replace('.0', '', regex=False).str.strip().str.zfill(5).tolist())
         return zone_dict, rate_dict, remote_zips, None
     except Exception as e:
         return None, None, None, f"数据读取错误: {str(e)}"
@@ -74,8 +74,8 @@ def calculate_shipment_fast(zone_dict, rate_dict, remote_zips, shipment_data):
     if shipment_data.empty: return None, "无有效包裹数据"
     
     first_item = shipment_data.iloc[0]
-    o_zip = str(first_item['发货邮编']).replace('.0', '').strip()
-    d_zip = str(first_item['收货邮编']).replace('.0', '').strip()
+    o_zip = str(first_item['发货邮编']).replace('.0', '').strip().zfill(5)
+    d_zip = str(first_item['收货邮编']).replace('.0', '').strip().zfill(5)
     d_state = str(first_item['收货州']).upper().strip()
     
     warehouse_zone_code = ZIP_TO_ZONE_MAP.get(o_zip)
@@ -158,7 +158,7 @@ else:
         with c1:
             selected_wh_label = st.selectbox("选择发货仓库", list(WAREHOUSE_OPTIONS.keys()))
             o_zip_val = WAREHOUSE_OPTIONS[selected_wh_label]
-        with c2: d_zip = st.text_input("五位收货邮编", "49022")
+        with c2: d_zip = st.text_input("收货邮编", "49022")
         with c3: d_state = st.text_input("收货州代码", "MI")
 
         st.markdown("###### 📦 包裹明细")
@@ -264,7 +264,4 @@ else:
                         res_df.to_excel(writer, index=False)
                     st.download_button("📥 下载结果", output.getvalue(), "LTL_Fast_Result.xlsx", type="primary")
             except Exception as e:
-
                 st.error(f"❌: {e}")
-
-
