@@ -16,7 +16,12 @@ WAREHOUSE_DB = [
     {"name": "乐歌美南SAV (Rincon)", "zip": "31326", "zone_code": "SAV"},
     {"name": "乐歌美西CAP仓 (Perris)", "zip": "92571", "zone_code": "CA"},
     {"name": "乐歌美东NJF (Burlington)", "zip": "08016", "zone_code": "NJ"},
-    {"name": "乐歌美中南HOU07 (Katy)", "zip": "77494", "zone_code": "HOU"}
+    {"name": "乐歌美中南HOU07 (Katy)", "zip": "77494", "zone_code": "HOU"},
+
+    {"name": "西邮美西WPLA3仓", "zip": "91761", "zone_code": "CA"},
+    {"name": "环世美西USCAEA02", "zip": "92880", "zone_code": "CA"},
+
+    {"name": "西邮WPHOU4仓", "zip": "14402", "zone_code": "HOU"}
 ]
 
 WAREHOUSE_OPTIONS = {f"{w['name']} - {w['zip']}": w['zip'] for w in WAREHOUSE_DB}
@@ -158,7 +163,7 @@ else:
         with c1:
             selected_wh_label = st.selectbox("选择发货仓库", list(WAREHOUSE_OPTIONS.keys()))
             o_zip_val = WAREHOUSE_OPTIONS[selected_wh_label]
-        with c2: d_zip = st.text_input("收货邮编", "49022")
+        with c2: d_zip = st.text_input("收货邮编", "49022", max_chars=5)
         with c3: d_state = st.text_input("收货州代码", "MI")
 
         st.markdown("###### 📦 包裹明细")
