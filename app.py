@@ -145,6 +145,23 @@ def calculate_shipment_fast(zone_dict, rate_dict, remote_zips, shipment_data):
 
 # ================= 4. 界面逻辑 =================
 st.set_page_config(page_title="LTL 运费计算器 V4.9", page_icon="🚚", layout="wide")
+
+st.markdown(
+    """
+    <style>
+    /* 修复下拉框(Selectbox)显示不全、无下拉条或被下方数据表组件遮挡的问题 */
+    div[data-baseweb="popover"] {
+        z-index: 999999 !important;
+    }
+    div[data-baseweb="popover"] ul[role="listbox"] {
+        max-height: 300px !important;
+        overflow-y: auto !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 st.title("🚚 马士基 LTL 运费计算器")
 st.caption("逻辑版本: V4.9")
 
