@@ -31,7 +31,7 @@ CONFIG = {
     'FILE_NAME': 'data.xlsx',
     'DIM_FACTOR': 200,
     'MIN_BILLABLE_WEIGHT': 173,
-    'FUEL_RATE': 0.48,
+    'FUEL_RATE': 0.465,
     'REMOTE_RATE': 28,
     'OVERSIZE_FEE': 50,
 }
