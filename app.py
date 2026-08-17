@@ -2,8 +2,9 @@ import streamlit as st
 import pandas as pd
 import os
 import io
+import json
 
-# ================= 1. 核心配置 (V4.9 - SKU备注版) =================
+# ================= 1. 核心配置 (V5.0 - 燃油费率可配置版) =================
 WAREHOUSE_DB = [
     {"name": "AI美西001 (Ontario)", "zip": "91761", "zone_code": "CA"},
     {"name": "AI美西002 (Ontario)", "zip": "91761", "zone_code": "CA"},
@@ -31,10 +32,32 @@ CONFIG = {
     'FILE_NAME': 'data.xlsx',
     'DIM_FACTOR': 200,
     'MIN_BILLABLE_WEIGHT': 173,
-    'FUEL_RATE': 0.41,
+    'FUEL_RATE': 0.48,
     'REMOTE_RATE': 28,
     'OVERSIZE_FEE': 50,
 }
+
+# ================= 持久化：燃油费率本地存储 =================
+_SETTINGS_FILE = 'ltl_settings.json'
+
+def load_saved_fuel_rate():
+    """从本地 JSON 文件读取上次保存的燃油费率，文件不存在则返回默认值。"""
+    if os.path.exists(_SETTINGS_FILE):
+        try:
+            with open(_SETTINGS_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                return float(data.get('fuel_rate', CONFIG['FUEL_RATE']))
+        except Exception:
+            pass
+    return CONFIG['FUEL_RATE']
+
+def save_fuel_rate(rate: float):
+    """将燃油费率写入本地 JSON 文件。"""
+    try:
+        with open(_SETTINGS_FILE, 'w', encoding='utf-8') as f:
+            json.dump({'fuel_rate': rate}, f)
+    except Exception:
+        pass
 
 # ================= 2. 数据加载 (极速版) =================
 @st.cache_data
@@ -144,7 +167,7 @@ def calculate_shipment_fast(zone_dict, rate_dict, remote_zips, shipment_data):
     }, None
 
 # ================= 4. 界面逻辑 =================
-st.set_page_config(page_title="LTL 运费计算器 V4.9", page_icon="🚚", layout="wide")
+st.set_page_config(page_title="LTL 运费计算器 V5.0", page_icon="🚚", layout="wide")
 
 st.markdown(
     """
@@ -162,10 +185,43 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# ================= 燃油费率配置（主面板） =================
+_saved_rate = load_saved_fuel_rate()
+
 st.title("🚚 马士基 LTL 运费计算器")
-st.caption("逻辑版本: V4.9")
+st.caption("逻辑版本: V5.0")
 
 zone_dict, rate_dict, remote_zips, err_msg = load_data_optimized()
+
+# 燃油费率配置区，内联展示在标题下方
+with st.container(border=True):
+    _col_label, _col_input, _col_link = st.columns([2, 1.5, 3])
+    with _col_label:
+        st.markdown("⛽ **燃油附加费率设置**")
+        st.caption("费率修改后点击》立即计算《生效")
+    with _col_input:
+        current_fuel_rate = st.number_input(
+            label="燃油费率",
+            min_value=0.0,
+            max_value=2.0,
+            value=_saved_rate,
+            step=0.01,
+            format="%.2f",
+            label_visibility="collapsed",
+            help="从马士基官网查询最新燃油附加费率后填入，例如 0.48 代表 48%"
+        )
+        st.caption(f"当前: **{current_fuel_rate:.0%}** ✔️ 已自动保存")
+        if current_fuel_rate != _saved_rate:
+            save_fuel_rate(current_fuel_rate)
+    with _col_link:
+        st.markdown(
+            "🔗 查询最新费率：[马士基燃油附加费官网](https://delivers.maersk.com/fuel%20surcharge/)  "
+            "<br><small style='color:gray;'>建议每周登录官网确认最新费率后再计算</small>",
+            unsafe_allow_html=True
+        )
+
+# 将主面板设置的燃油费率写入当前运行配置
+CONFIG['FUEL_RATE'] = current_fuel_rate
 
 if err_msg:
     st.error(f"❌ 系统错误: {err_msg}")
